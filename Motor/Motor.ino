@@ -2,18 +2,18 @@
 // Arduino Nano Metro Simulator
 // ----------------------------------------------------------------
 
-int motor_pin = 12;
+int motor_pin2 = 2;
+int motor_pin6 = 6;
 
 void setup() {
 
   Serial.begin(9600);
   Serial.print("Program has begun. e");
-  pinMode(motor_pin, OUTPUT);
+  pinMode(motor_pin2, OUTPUT);
+  pinMode(motor_pin6, OUTPUT);
 }
 
 void loop() {
-  digitalWrite(motor_pin, HIGH);
-  delay(5000);
-  digitalWrite(motor_pin, LOW);
-  delay(2000);
+  digitalWrite(motor_pin2, HIGH);
+  digitalWrite(motor_pin6, HIGH);
 }
