@@ -14,6 +14,6 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(motor_pin2, HIGH);
+  digitalWrite(motor_pin2, LOW);
   digitalWrite(motor_pin6, HIGH);
 }
