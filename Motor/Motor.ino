@@ -17,3 +17,6 @@ void loop() {
   digitalWrite(motor_pin2, LOW);
   digitalWrite(motor_pin6, HIGH);
 }
+
+//mr spina suggests using an
+//allows for multiple motors to be conencted at once
