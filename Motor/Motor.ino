@@ -2,21 +2,36 @@
 // Arduino Nano Metro Simulator
 // ----------------------------------------------------------------
 
-int motor_pin2 = 2;
-int motor_pin6 = 6;
+int m1_clockwise = 2;
+int m1_counterclockwise = 3;
+int m2_clockwise = 4;
+int m2_counterclockwise = 5;
+
+int m_pins[] = {m1_clockwise, m1_counterclowckwise, m2_clockwise, m2_counterclockwise};
 
 void setup() {
 
   Serial.begin(9600);
-  Serial.print("Program has begun. e");
-  pinMode(motor_pin2, OUTPUT);
-  pinMode(motor_pin6, OUTPUT);
+  Serial.print("Program has begun.");
+  
+  //initialize pins
+  for (int i = 0; i <= size(m_pins[]); i++) {
+    delay(10);
+  }
 }
 
 void loop() {
-  digitalWrite(motor_pin2, LOW);
-  digitalWrite(motor_pin6, HIGH);
+
 }
 
-//mr spina suggests using an
+int size(int beat[])
+{
+  // Calculate the number of elements in the array and pass it to loopBeat
+  //sizeOf() returns the value of the array in bytes. You check the total number of bytes, divided with one of the bytes value (i picked 0 just for readability, it doesnt matter which one i pick as they all have an equal byte value)
+  //to get the number of items in the array
+  return sizeof(beat) / sizeof(beat[0]);
+}
+
+
+//mr spina suggests using a certain chip
 //allows for multiple motors to be conencted at once
