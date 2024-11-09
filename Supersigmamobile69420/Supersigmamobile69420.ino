@@ -5,9 +5,9 @@
 //Supersigmamobile69420 only for basic motions
 //All movements ddone here are to be pre-determined by the program, all movements are hard coded
 
-int m1_clockwise = 2; //left motor
+int m1_clockwise = 2; //left motor from front
 int m1_counterclockwise = 3;
-int m2_clockwise = 4; //right motor
+int m2_clockwise = 4; //right motor from front
 int m2_counterclockwise = 5;
 
 int m_pins[] = {m2_clockwise, m2_counterclockwise, m1_clockwise, m1_counterclockwise};
@@ -42,7 +42,7 @@ int size(int beat[]) {
 void forward(int speed)
 {
   analogWrite(m1_counterclockwise, speed);
-  analogWrite(m2_counterclockwise, speed);
+  analogWrite(m2_counterclockwise, speed-142);
 
   digitalWrite(m1_clockwise, LOW);
   digitalWrite(m2_clockwise, LOW);
