@@ -26,20 +26,12 @@ void setup() {
 
   delay(3000);
 
-  left(255);
-
-  delay(5000);
-
   stop();
   
 }
 
 void loop() {
-  /*for (int i = 0; i < size(m_pins); i++) {
-      analogWrite(m_pins[i], HIGH);
-      delay(1000);
-      analogWrite(m_pins[i], LOW);
-  }  */
+
 }
 
 int size(int beat[]) {
@@ -49,17 +41,17 @@ int size(int beat[]) {
 
 void forward(int speed)
 {
-  analogWrite(m1_clockwise, speed);
-  analogWrite(m2_clockwise, speed);
+  analogWrite(m1_counterclockwise, speed);
+  analogWrite(m2_counterclockwise, speed);
 
-  digitalWrite(m1_counterclockwise, LOW);
-  digitalWrite(m2_counterclockwise, LOW);
+  digitalWrite(m1_clockwise, LOW);
+  digitalWrite(m2_clockwise, LOW);
 }
 
 void backwards(int speed)
 {
-  digitalWrite(m1_clockwise, LOW);
-  digitalWrite(m2_clockwise, LOW);
+  digitalWrite(m1_counterclockwise, LOW);
+  digitalWrite(m2_counterclockwise, LOW);
 
   analogWrite(m1_clockwise, speed);
   analogWrite(m2_clockwise, speed);
@@ -67,45 +59,45 @@ void backwards(int speed)
 
 void stop()
 {
-  digitalWrite(m1_clockwise, LOW);
-  digitalWrite(m2_clockwise, LOW);
-
   digitalWrite(m1_counterclockwise, LOW);
   digitalWrite(m2_counterclockwise, LOW);
+
+  digitalWrite(m1_clockwise, LOW);
+  digitalWrite(m2_clockwise, LOW);
 }
 
 void left(int speed)
 {
-  digitalWrite(m1_clockwise, LOW);
-  analogWrite(m2_clockwise, speed);
+  digitalWrite(m1_counterclockwise, LOW);
+  analogWrite(m2_counterclockwise, speed);
 
-  analogWrite(m1_counterclockwise, speed);
-  digitalWrite(m2_counterclockwise, LOW);
+  analogWrite(m1_clockwise, speed);
+  digitalWrite(m2_clockwise, LOW);
 }
 
 void right(int speed)
 {
-  analogWrite(m1_clockwise, speed);
-  analogWrite(m2_clockwise, speed);
-
   analogWrite(m1_counterclockwise, speed);
   analogWrite(m2_counterclockwise, speed);
+
+  analogWrite(m1_clockwise, speed);
+  analogWrite(m2_clockwise, speed);
 }
 
 void backwardsLeft(int speed)
 {
-  analogWrite(m1_clockwise, speed);
-  analogWrite(m2_clockwise, speed);
-
   analogWrite(m1_counterclockwise, speed);
   analogWrite(m2_counterclockwise, speed);
+
+  analogWrite(m1_clockwise, speed);
+  analogWrite(m2_clockwise, speed);
 }
 
 void backwardsRight(int speed)
 {
-  analogWrite(m1_clockwise, speed);
-  analogWrite(m2_clockwise, speed);
-
   analogWrite(m1_counterclockwise, speed);
   analogWrite(m2_counterclockwise, speed);
+
+  analogWrite(m1_clockwise, speed);
+  analogWrite(m2_clockwise, speed);
 }
