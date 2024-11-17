@@ -23,8 +23,28 @@ void setup() {
   }
 
   forward(255);
-
   delay(3000);
+  
+  left(255);
+  delay(500);
+
+  forward(255);
+  delay(3000);
+  
+  left(255);
+  delay(500);
+
+  forward(255);
+  delay(3000);
+  
+  left(255);
+  delay(500);
+
+  forward(255);
+  delay(3000);
+  
+  left(255);
+  delay(500);
 
   stop();
   
@@ -42,7 +62,7 @@ int size(int beat[]) {
 void forward(int speed)
 {
   analogWrite(m1_counterclockwise, speed);
-  analogWrite(m2_counterclockwise, speed-142);
+  analogWrite(m2_counterclockwise, speed);
 
   digitalWrite(m1_clockwise, LOW);
   digitalWrite(m2_clockwise, LOW);
@@ -68,6 +88,7 @@ void stop()
 
 void left(int speed)
 {
+  delay(500);
   digitalWrite(m1_counterclockwise, LOW);
   analogWrite(m2_counterclockwise, speed);
 
@@ -77,6 +98,7 @@ void left(int speed)
 
 void right(int speed)
 {
+  delay(500);
   analogWrite(m1_counterclockwise, speed);
   analogWrite(m2_counterclockwise, speed);
 
@@ -86,6 +108,7 @@ void right(int speed)
 
 void backwardsLeft(int speed)
 {
+  delay(500);
   analogWrite(m1_counterclockwise, speed);
   analogWrite(m2_counterclockwise, speed);
 
@@ -95,6 +118,7 @@ void backwardsLeft(int speed)
 
 void backwardsRight(int speed)
 {
+  delay(500);
   analogWrite(m1_counterclockwise, speed);
   analogWrite(m2_counterclockwise, speed);
 

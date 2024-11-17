@@ -36,11 +36,12 @@ void loop() {
 
   if (cm < 5 && cm > 0)  // Check that distance is within range
   {
-    backwards(255);
-    delay(2000);
+    stop();
   }
-
-  forward(255);
+  else
+  {
+    forward(255);
+  }
 }
 
 // Modified sendSignal function with timing adjustments
@@ -81,6 +82,15 @@ void backwards(int speed) {
 
   analogWrite(m1_clockwise, speed);
   analogWrite(m2_clockwise, speed);
+}
+
+
+void stop() {
+  digitalWrite(m1_counterclockwise, LOW);
+  digitalWrite(m2_counterclockwise, LOW);
+
+  digitalWrite(m1_clockwise, LOW);
+  digitalWrite(m2_clockwise, LOW);
 }
 
 long microsecondsToCentimeters(long microseconds) {
