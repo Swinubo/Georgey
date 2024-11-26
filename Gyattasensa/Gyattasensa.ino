@@ -105,6 +105,7 @@ void right(int speed)
   digitalWrite(m2_clockwise, LOW);
 }
 
+//write a function where the robot stops and then changes direction to avoid the stutter !!
 
 void stop() {
   digitalWrite(m1_counterclockwise, LOW);
