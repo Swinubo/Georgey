@@ -14,6 +14,8 @@ const int m2_counterclockwise = 5;
 const int trigPin = 7;
 const int echoPin = 8;
 
+//piezo pin
+const int piezoPin = 6;
 int m_pins[] = {m2_clockwise, m2_counterclockwise, m1_clockwise, m1_counterclockwise};
 
 void setup() {
@@ -28,15 +30,24 @@ void setup() {
   // Initialize pins for ultrasonic sensor
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
+
+  //Piezo
+  pinMode(piezoPin, OUTPUT);
 }
 
 void loop() {
   int cm = sendSignal();
+  Serial.println("Distance: ");
   Serial.println(cm);
 
-  if (cm < 5 && cm > 0)  // Check that distance is within range
+  if (cm < 10 && cm > 0)  // Check that distance is within range
   {
-    stop();
+    
+    //stop();
+    right(255);
+    delay(5000);
+    forward(255);
+    //NoSurprises();
   }
   else
   {
@@ -84,6 +95,16 @@ void backwards(int speed) {
   analogWrite(m2_clockwise, speed);
 }
 
+void right(int speed)
+{
+  delay(500);
+  digitalWrite(m1_counterclockwise, LOW);  
+  analogWrite(m2_counterclockwise, speed);
+
+  analogWrite(m1_clockwise, speed);
+  digitalWrite(m2_clockwise, LOW);
+}
+
 
 void stop() {
   digitalWrite(m1_counterclockwise, LOW);
@@ -98,4 +119,45 @@ long microsecondsToCentimeters(long microseconds) {
   // The ping travels out and back, so to find the distance of the object we
   // take half of the distance travelled.
   return microseconds / 29 / 2;
+}
+
+void NoSurprises()
+{
+  tone(piezoPin, 440); // a
+  delay(300);
+  tone(piezoPin, 261); //middle c
+  delay(300);
+  tone(piezoPin, 349); //f
+  delay(300);
+  tone(piezoPin, 261); //middle c
+  delay(300);
+
+  tone(piezoPin, 440); // a
+  delay(300);
+  tone(piezoPin, 261); //middle c
+  delay(300);
+  tone(piezoPin, 349); //f
+  delay(300);
+  tone(piezoPin, 261); //middle c
+  delay(300);
+
+  tone(piezoPin, 440); // a
+  delay(300);
+  tone(piezoPin, 261); //middle c
+  delay(300);
+  tone(piezoPin, 349); //f
+  delay(300);
+  tone(piezoPin, 261); //middle c
+  delay(300);
+
+  tone(piezoPin, 466); // Bb
+  delay(300);
+  tone(piezoPin, 277); //c#
+  delay(300);
+  tone(piezoPin, 349); //f
+  delay(300);
+  tone(piezoPin, 392); //g
+  delay(300);
+
+  tone(piezoPin, 0); //stop
 }

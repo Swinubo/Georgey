@@ -6,10 +6,10 @@
 #include <LiquidCrystal_I2C.h>
 
 //Set the LCD address to 0x27 for a 16 chars and 2 line display.
-LiquidCrystal_I2C lcd(0x27,16,2);
+//LiquidCrystal_I2C lcd(0x27,16,2);
 
-const byte echoPin = 2; // attach Arduino pin D2 to pin Echo of HC-SR04
-const byte trigPin = 3; // attach Arduino pin D3 to pin Trig of HC-SR04
+const byte echoPin = 8; // attach Arduino pin D2 to pin Echo of HC-SR04
+const byte trigPin = 7; // attach Arduino pin D3 to pin Trig of HC-SR04
 
 long duration; // variable for the duration of sound wave travel (uS)
 long distance; // variable for the distance measurement (cm)
@@ -21,24 +21,24 @@ byte avgCount=10; // number of measurements to average
 void setup() {
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
   pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
-//  Serial.begin(9600); // // Serial Communication is starting with 9600 baudrate -> commenteed out as no communications to serial are being made
-//  delay(10);
+  Serial.begin(9600); // // Serial Communication is starting with 9600 baudrate -> commenteed out as no communications to serial are being made
+  delay(10);
 
 
   //Initialize the lcd, clear the display and turn on the backlight.
-  lcd.init();
+  /*lcd.init();
   delay(100);
   lcd.clear();
   lcd.backlight();
 
   lcd.setCursor(0,0);
   lcd.print("SONAR demo by");
-  delay(2000);
+  //delay(2000);
   displ_name("Gaspar S. Mendes");
   displ_name("Mihran Chowdhury");
   displ_name("Luca Santoro");
 
-  lcd.clear();
+  lcd.clear();*/
 }
 
 void loop() {
@@ -68,16 +68,16 @@ void loop() {
 
   avgDistance = sumDistance/avgCount;
 
-  lcd.setCursor(0,0);
-  lcd.print("Distance: ");
-  lcd.print(avgDistance);
-  lcd.print(" cm ");
+  //lcd.setCursor(0,0);
+  Serial.print("Distance: ");
+  Serial.print(avgDistance);
+  Serial.println(" cm ");
 
 }
 
-void displ_name(String name){
+/*void displ_name(String name){
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(name); 
   delay(3000);
-}
+}*/
