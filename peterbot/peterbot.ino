@@ -5,10 +5,10 @@
 //Gyattasensa is for practicing using a sensor
 //All movements done here are to be pre-determined by the program, all movements are hard coded
 
-const int m1_clockwise = 5; //left motor //2
-const int m1_counterclockwise = 6; //3
-const int m2_clockwise = 7; //right motor //4
-const int m2_counterclockwise = 8; //5
+const int m1_clockwise = 6; //left motor //2
+const int m1_counterclockwise = 5; //3
+const int m2_clockwise = 8; //right motor //4
+const int m2_counterclockwise = 7; //5
 
 // this constant won't change. It's the pin number of the sensor's output:
 const int trigPin = 10; //7
@@ -40,14 +40,11 @@ void loop() {
   Serial.println("Distance: ");
   Serial.println(cm);
 
-  if (cm < 10 && cm > 0)  // Check that distance is within range
+  if (cm < 20 && cm > 0)  // Check that distance is within range
   {
-    
     //stop();
     right(255);
-    delay(5000);
-    forward(255);
-    //NoSurprises();
+    delay(350);
   }
   else
   {
@@ -122,43 +119,4 @@ long microsecondsToCentimeters(long microseconds) {
   return microseconds / 29 / 2;
 }
 
-void NoSurprises()
-{
-  tone(piezoPin, 440); // a
-  delay(300);
-  tone(piezoPin, 261); //middle c
-  delay(300);
-  tone(piezoPin, 349); //f
-  delay(300);
-  tone(piezoPin, 261); //middle c
-  delay(300);
 
-  tone(piezoPin, 440); // a
-  delay(300);
-  tone(piezoPin, 261); //middle c
-  delay(300);
-  tone(piezoPin, 349); //f
-  delay(300);
-  tone(piezoPin, 261); //middle c
-  delay(300);
-
-  tone(piezoPin, 440); // a
-  delay(300);
-  tone(piezoPin, 261); //middle c
-  delay(300);
-  tone(piezoPin, 349); //f
-  delay(300);
-  tone(piezoPin, 261); //middle c
-  delay(300);
-
-  tone(piezoPin, 466); // Bb
-  delay(300);
-  tone(piezoPin, 277); //c#
-  delay(300);
-  tone(piezoPin, 349); //f
-  delay(300);
-  tone(piezoPin, 392); //g
-  delay(300);
-
-  tone(piezoPin, 0); //stop
-}

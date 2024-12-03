@@ -5,10 +5,10 @@
 //Supersigmamobile69420 only for basic motions
 //All movements ddone here are to be pre-determined by the program, all movements are hard coded
 
-int m1_clockwise = 2; //left motor from front
-int m1_counterclockwise = 3;
-int m2_clockwise = 4; //right motor from front
-int m2_counterclockwise = 5;
+int m1_clockwise = 5; //left motor from front //2
+int m1_counterclockwise = 6; //3
+int m2_clockwise = 7; //right motor from front //4
+int m2_counterclockwise = 8; //5
 
 int m_pins[] = {m2_clockwise, m2_counterclockwise, m1_clockwise, m1_counterclockwise};
 
