@@ -17,7 +17,7 @@ const int echoPin = 11; //8
 //piezo pin
 const int piezoPin = 6;
 int m_pins[] = {m2_clockwise, m2_counterclockwise, m1_clockwise, m1_counterclockwise};
-
+ 
 void setup() {
   Serial.begin(9600);
   Serial.println("Program has begun.");
