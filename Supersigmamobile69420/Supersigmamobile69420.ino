@@ -54,9 +54,9 @@ void loop() {
 
 }
 
-int size(int beat[]) {
+int size(int myList[]) {
   // You need to pass the size of the array explicitly when calling this function
-  return sizeof(m_pins) / sizeof(m_pins[0]);
+  return sizeof(myList) / sizeof(myList[0]);
 }
 
 void forward(int speed)
