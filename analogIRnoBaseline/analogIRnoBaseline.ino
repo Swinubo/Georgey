@@ -5,9 +5,7 @@ int RECV_PIN = 4;  // Pin where your IR receiver's OUT pin is connected
 // Pin where the analog device is connected
 const int analogPin = A0;
 int analogValue = 0;               // Variable to store the analog reading
-int baseline = 0;               // Variable to store the baseline darkness reading
-int average = 0;                   // Variable to store the calculated average
-int previousAverage = 0;        // Variable to store the previous calculated average
+int previousAnalogValue = 0;        // Variable to store the previous calculated average
 int significantChangeVal = 0;       // Variable to store the change required to be considered significsant between the baseline and the average
 const int amountOfInputsForAverage = 6;  // Number of inputs to calculate average
 
@@ -33,42 +31,16 @@ void setup() {
 }
 
 void loop() {
+  previousAnalogValue = analogValue;
   analogValue = analogRead(analogPin);  // Read analog input
   Serial.print("Analog Value: ");
   Serial.println(analogValue);  // Print the analog value to Serial Monitor
 
-  // Shift the readings and add the new value
-  for (int i = amountOfInputsForAverage - 1; i > 0; i--) {
-    readings[i] = readings[i - 1];  // Shift old readings to the right
-  }
-  readings[0] = analogValue;  // Add the new reading to the start of the array
-
-  //Update the average reading
-  previousAverage = average;
-  average = updateAverage();
-  Serial.print("Average: ");
-  Serial.println(average);
-
-  // Update the baseline
-  baseline = updateBaseline();
-  Serial.print("Baseline: ");
-  Serial.println(baseline);
-
-  // Update the sigChange
-  significantChangeVal = significantChange();
-  Serial.print("Significant Change: ");
-  Serial.println(significantChangeVal);
-
-  Serial.print("Detect ball: ");
-  Serial.println(detectBall());
-  Serial.print("Ir signal: ");
-  Serial.println(IrReceiver.decode());
-
-  if (baseline > 20 && detectBall() && IrReceiver.decode())
+  if (analogValue < previousAnalogValue && IrReceiver.decode())
   {
     Serial.print("GOING FORWARD!");
-    average = previousAverage;
-    delay(400);
+    analogValue = previousAnalogValue;
+    delay(300);
     forward(255);
     delay(5000);
   }
@@ -76,42 +48,6 @@ void loop() {
 
   Serial.println("GOING RIGHT!");
   right(255);
-}
-
-bool detectBall(){
-  if (baseline - average >= significantChangeVal && significantChangeVal > 0 && baseline - average > 0)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
-int significantChange(){
-  //return 0.93*baseline - 32.2;
-  return 0.0487*baseline + 0.5; //0.5 added at the end for rounding
-}
-
-int updateAverage(){
-  average = 0;  // Reset the average to 0
-
-  // Calculate the average of the readings
-  for (int i = 0; i < amountOfInputsForAverage; i++) {
-    average += readings[i];
-  }
-
-  return average / amountOfInputsForAverage;
-}
-
-int updateBaseline() {
-  // Update the baseline if the average is greater
-  if (average > baseline) {
-    return average;
-  } else {
-    return baseline;
-  }
 }
 
 void forward(int speed) {
