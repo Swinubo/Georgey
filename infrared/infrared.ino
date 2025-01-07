@@ -59,7 +59,7 @@ void loop() {
 
 void forward(int speed) {
   analogWrite(m1_counterclockwise, speed);
-  analogWrite(m2_counterclockwise, speed);
+  analogWrite(m2_counterclockwise, speed-120);
 
   digitalWrite(m1_clockwise, LOW);
   digitalWrite(m2_clockwise, LOW);
@@ -75,7 +75,6 @@ void backwards(int speed) {
 
 void left(int speed)
 {
-  delay(500);
   digitalWrite(m1_counterclockwise, LOW);  
   analogWrite(m2_counterclockwise, speed);
 
@@ -85,7 +84,6 @@ void left(int speed)
 
 void right(int speed)
 {
-  delay(500);
   analogWrite(m1_counterclockwise, speed);  
   digitalWrite(m2_counterclockwise, LOW);
 
