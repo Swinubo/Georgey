@@ -7,6 +7,8 @@ MPU6050 mpu;
 float yaw = 0.0; // Yaw angle in degrees
 unsigned long prevTime = 0;
 
+float speedVariable = 0.4;
+
 int RECV_PIN = 4;  // Pin where your IR receiver's OUT pin is connected
 
 int detectBallPin = 3;
@@ -78,7 +80,6 @@ void setup() {
   Serial.println(init_yaw);
 }
 
-
 void loop() {
   analogValue = analogRead(analogPin);  // Read analog input
   Serial.print("Analog Value: ");
@@ -101,37 +102,34 @@ void loop() {
     delay(250);
     signed long startTime = millis();
     Serial.println("GOING FORWARD!");
-    forward(255, 255);
+    forward(255 * speedVariable, 255 * speedVariable);
     while (millis() - startTime < 1500) {
       Serial.println(digitalRead(3));
-      if (digitalRead(3) == 0)
-      {
-        Serial.println("SWITCH IS ON ON ONON ONONONONOONONONONONOONONONONONON");
+      if (digitalRead(3) == 0) {
+        Serial.println("SWITCH IS ON ON ONON ONONONONOONONONONONOONONONONON");
         hasBall = true;
         Serial.print("Before while!");
-        while (yawVal() < init_yaw + 10 || yawVal() > init_yaw - 10)
-        {
+        while (yawVal() < init_yaw + 10 || yawVal() > init_yaw - 10) {
           Serial.print("Yaw: ");
           Serial.println(yawVal());
           Serial.print("init_yaw: ");
           Serial.println(init_yaw);
-          forward(90, 150);
+          forward(90 * speedVariable, 150 * speedVariable);
         }
         Serial.println(hasBall);
-        while (hasBall){
-          forward(255, 255); // peter's y = x^3 can be introduced here
+        while (hasBall) {
+          forward(255 * speedVariable, 255 * speedVariable); // Peter's y = x^3 can be introduced here
           Serial.println("Moving forward with the ball!");
           delay(100); // Small delay to prevent flooding the serial monitor
         }
         break;
       }
     }
-    //forward(140, 140);
   }
   IrReceiver.resume();  // Prepare to receive the next signal
 
   Serial.println("GOING RIGHT!");
-  right(100, 100);
+  right(100 * speedVariable, 100 * speedVariable);
 }
 
 int initialization() {
@@ -181,8 +179,7 @@ int updateBaseline() {
   return baseline;
 }
 
-int yawVal()
-{
+int yawVal() {
   int16_t gz; // Gyroscope Z-axis value
 
   unsigned long currentTime = millis();
@@ -203,7 +200,6 @@ int yawVal()
 }
 
 void forward(int speed1, int speed2) {
-  
   analogWrite(m2_counterclockwise, speed2);
   delay(100);
   analogWrite(m1_counterclockwise, speed1);
