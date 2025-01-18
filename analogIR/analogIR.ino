@@ -109,12 +109,12 @@ void loop() {
         Serial.println("SWITCH IS ON ON ONON ONONONONOONONONONONOONONONONON");
         hasBall = true;
         Serial.print("Before while!");
-        while (yawVal() < init_yaw + 10 || yawVal() > init_yaw - 10) {
+        while (yawVal() < 350 || (yawVal() < 0 && yawVal() > 10)) {
           Serial.print("Yaw: ");
           Serial.println(yawVal());
           Serial.print("init_yaw: ");
           Serial.println(init_yaw);
-          forward(90 * speedVariable, 150 * speedVariable);
+          forward(90 * speedVariable, 120 * speedVariable);
         }
         Serial.println(hasBall);
         while (hasBall) {
@@ -206,7 +206,6 @@ int forwardDuration()
 
 void forward(int speed1, int speed2) {
   analogWrite(m2_counterclockwise, speed2);
-  delay(100);
   analogWrite(m1_counterclockwise, speed1);
   digitalWrite(m1_clockwise, LOW);
   digitalWrite(m2_clockwise, LOW);
