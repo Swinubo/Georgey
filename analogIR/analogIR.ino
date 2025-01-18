@@ -7,7 +7,7 @@ MPU6050 mpu;
 float yaw = 0.0; // Yaw angle in degrees
 unsigned long prevTime = 0;
 
-float speedVariable = 0.4;
+float speedVariable = 1;
 
 int RECV_PIN = 4;  // Pin where your IR receiver's OUT pin is connected
 
@@ -129,7 +129,7 @@ void loop() {
   IrReceiver.resume();  // Prepare to receive the next signal
 
   Serial.println("GOING RIGHT!");
-  right(100 * speedVariable, 100 * speedVariable);
+  right(180 * speedVariable, 180 * speedVariable);
 }
 
 int initialization() {
@@ -197,6 +197,11 @@ int yawVal() {
   yaw = fmod(yaw + 360.0, 360.0);
 
   return yaw - 0.03;
+}
+
+int forwardDuration()
+{
+  
 }
 
 void forward(int speed1, int speed2) {
