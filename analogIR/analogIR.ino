@@ -103,7 +103,7 @@ void loop() {
     signed long startTime = millis();
     Serial.println("GOING FORWARD!");
     forward(255 * speedVariable, 255 * speedVariable);
-    while (millis() - startTime < 1500) {
+    while (millis() - startTime < timer()) {
       Serial.println(digitalRead(3));
       if (digitalRead(3) == 0) {
         Serial.println("SWITCH IS ON ON ONON ONONONONOONONONONONOONONONONON");
@@ -129,7 +129,7 @@ void loop() {
   IrReceiver.resume();  // Prepare to receive the next signal
 
   Serial.println("GOING RIGHT!");
-  right(180 * speedVariable, 180 * speedVariable);
+  right(90 * speedVariable, 90 * speedVariable);
 }
 
 int initialization() {
@@ -199,9 +199,12 @@ int yawVal() {
   return yaw - 0.03;
 }
 
-int forwardDuration()
+int timer()
 {
-  
+  int calculatedTime = (baseline - average) / significantChangeVal * 70;
+  Serial.print("Timer: ");
+  Serial.println(calculatedTime);
+  return max(calculatedTime, 100); // Ensure a minimum value of 100 ms
 }
 
 void forward(int speed1, int speed2) {

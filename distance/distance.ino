@@ -1,116 +1,93 @@
-#include <IRremote.h>
-#include <Wire.h>
-#include <MPU6050.h>
-
-MPU6050 mpu;
-
-float yaw = 0.0; // Yaw angle in degrees
-unsigned long prevTime = 0;
-
-float speedVariable = 0.4;
-
-int RECV_PIN = 4;  // Pin where your IR receiver's OUT pin is connected
-int detectBallPin = 3;
-bool hasBall = false;
-
-// Pin where the analog device is connected
-const int analogPin = A0;
-int analogValue = 0;               // Variable to store the analog reading
-int baseline = 0;                  // Variable to store the baseline IR light reading
-int average = 0;                   // Variable to store the calculated average
-const int amountOfInputsForAverage = 6;  // Number of inputs to calculate average
-
-int sampleCounter = 0;             // Counter to track the number of samples
-int sum = 0;                       // Variable to store the sum of the readings
+const int analogPin = A0;  // Analog sensor pin
+const int numSamples = 10; // Number of samples for averaging
+int baseline = 0;          // Baseline for IR sensor readings
+int analogValue = 0;       // Current analog sensor value
+int average = 0;           // Rolling average of sensor readings
 
 void setup() {
-  Serial.begin(9600);  // Start serial communication for monitoring
-  Serial.println("Initialization begun!");
+  Serial.begin(9600);  // Start serial communication
+  Serial.println("Initializing system...");
 
-  pinMode(detectBallPin, INPUT_PULLUP);
-
-  baseline = initialization();  // Set baseline
-  Serial.print("Baseline: ");
+  baseline = initializeBaseline();  // Establish a baseline
+  Serial.print("Baseline initialized: ");
   Serial.println(baseline);
-
-  Wire.begin();
-  mpu.initialize();
-
-  if (mpu.testConnection()) {
-    Serial.println("MPU6050 connected successfully!");
-  } else {
-    Serial.println("MPU6050 connection failed!");
-    while (1);
-  }
-
-  prevTime = millis(); // Initialize time
 }
 
 void loop() {
-  analogValue = analogRead(analogPin);  // Read analog input
-  average = updateAverage(analogValue);  // Update the rolling average
-  baseline = updateBaseline();  // Dynamically update the baseline
+  // Read and process the sensor input
+  analogValue = readMultipleSamples(analogPin, numSamples);  // Averaged reading
+  average = updateRollingAverage(analogValue);               // Rolling average
+  baseline = updateDynamicBaseline(average, baseline);       // Dynamic baseline adjustment
 
-  // Calculate the IR light intensity change (y) and the distance (x)
-  int y = baseline - average;
+  // Calculate the IR light change and estimated distance
+  int y = baseline - average;  // IR light intensity change
   float distance = calculateDistance(y, baseline);
 
-  // Print the results
+  // Print debug information
+  Serial.print("Analog Value: ");
+  Serial.println(analogValue);
   Serial.print("Baseline: ");
   Serial.println(baseline);
-  Serial.print("Average: ");
-  Serial.println(average);
   Serial.print("IR Light Change (y): ");
   Serial.println(y);
-  Serial.print("Estimated Distance (x): ");
+  Serial.print("Estimated Distance: ");
   Serial.println(distance);
+  Serial.println();
 
-  delay(200); // Small delay to prevent flooding the serial monitor
+  delay(200);  // Delay for stability
 }
 
-// Initialization function to set the baseline
-int initialization() {
-  int turnDuration = 5000;  // Time (ms) to perform the turn
-  unsigned long startTime = millis();
+// Function to initialize the baseline
+int initializeBaseline() {
   int tempBaseline = 0;
-  int samples = 0;
-
-  while (millis() - startTime < turnDuration) {
-    analogValue = analogRead(analogPin);
-    tempBaseline += analogValue;
-    samples++;
+  for (int i = 0; i < numSamples * 10; i++) { // Collect more samples for stability
+    tempBaseline += analogRead(analogPin);
+    delay(10);
   }
-
-  return tempBaseline / samples;  // Return the average as the baseline
+  return tempBaseline / (numSamples * 10);  // Return average as the baseline
 }
 
-// Function to calculate distance based on the inverse square root function
+// Function to read multiple samples and calculate the average
+int readMultipleSamples(int pin, int samples) {
+  int total = 0;
+  for (int i = 0; i < samples; i++) {
+    total += analogRead(pin);
+    delayMicroseconds(500);  // Short delay between readings
+  }
+  return total / samples;  // Return average value
+}
+
+// Function to update the rolling average
+int updateRollingAverage(int newValue) {
+  static int rollingSum = 0;
+  static int sampleCount = 0;
+  static const int rollingWindow = 6;  // Size of the rolling window
+
+  rollingSum += newValue;
+  sampleCount++;
+
+  if (sampleCount >= rollingWindow) {
+    int rollingAverage = rollingSum / rollingWindow;
+    rollingSum = 0;
+    sampleCount = 0;
+    return rollingAverage;
+  }
+  return average;  // Return the last calculated average if window isn't full
+}
+
+// Function to dynamically update the baseline
+int updateDynamicBaseline(int currentAverage, int currentBaseline) {
+  // Adjust the baseline if the average exceeds it
+  if (currentAverage > currentBaseline) {
+    return currentAverage;
+  }
+  return currentBaseline;
+}
+
+// Function to calculate distance using an inverse square root function
 float calculateDistance(int y, int b) {
-  if (y <= 0) return 0; // Prevent invalid calculations
+  if (y <= 0) return 0;  // Avoid division by zero or invalid values
 
   float x = pow((float)y / (0.9513 * b), -2.746);
   return x;
-}
-
-// Rolling average calculation
-int updateAverage(int newValue) {
-  sum += newValue;
-  sampleCounter++;
-
-  if (sampleCounter == amountOfInputsForAverage) {
-    int newAverage = sum / amountOfInputsForAverage;
-    sum = 0;
-    sampleCounter = 0;
-    return newAverage;
-  }
-
-  return average;
-}
-
-// Dynamically update the baseline
-int updateBaseline() {
-  if (average > baseline) {
-    return average;
-  }
-  return baseline;
 }
