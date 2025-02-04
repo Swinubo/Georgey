@@ -1,3 +1,9 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Initialize LCD
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Change 0x27 to your LCD address if needed
+
 const int analogPin = A0;  // Analog sensor pin
 const int numSamples = 10; // Number of samples for averaging
 int baseline = 0;          // Baseline for IR sensor readings
@@ -7,6 +13,9 @@ int average = 0;           // Rolling average of sensor readings
 void setup() {
   Serial.begin(9600);  // Start serial communication
   Serial.println("Initializing system...");
+
+  lcd.init();           // Initialize LCD
+  lcd.backlight();      // Turn on the backlight
 
   baseline = initializeBaseline();  // Establish a baseline
   Serial.print("Baseline initialized: ");
@@ -23,7 +32,7 @@ void loop() {
   int y = baseline - average;  // IR light intensity change
   float distance = calculateDistance(y, baseline);
 
-  // Print debug information
+  // Print debug information (optional, you can comment this out)
   Serial.print("Analog Value: ");
   Serial.println(analogValue);
   Serial.print("Baseline: ");
@@ -33,6 +42,13 @@ void loop() {
   Serial.print("Estimated Distance: ");
   Serial.println(distance);
   Serial.println();
+
+  // Display the distance on the LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Distance: ");
+  lcd.print(distance);
+  lcd.print(" cm");
 
   delay(200);  // Delay for stability
 }

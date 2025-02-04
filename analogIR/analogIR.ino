@@ -1,83 +1,82 @@
-#include <IRremote.h>
 #include <Wire.h>
 #include <MPU6050.h>
+#include <LiquidCrystal_I2C.h>
+#include <IRremote.h>
 
+// Initialize devices
 MPU6050 mpu;
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Change 0x27 to your LCD address if needed
 
-float yaw = 0.0; // Yaw angle in degrees
+float yaw = 0.0;
 unsigned long prevTime = 0;
 
 float speedVariable = 1;
 
-int RECV_PIN = 4;  // Pin where your IR receiver's OUT pin is connected
-
+int RECV_PIN = 4;  // IR receiver pin
 int detectBallPin = 3;
 bool hasBall = false;
 
-// Pin where the analog device is connected
+// Analog sensor (LDR, etc.)
 const int analogPin = A0;
-int analogValue = 0;               // Variable to store the analog reading
-int baseline = 0;                  // Variable to store the baseline darkness reading
-int average = 0;                   // Variable to store the calculated average
-int significantChangeVal = 0;      // Variable to store the change required to detect a ball
-const int amountOfInputsForAverage = 6;  // Number of inputs to calculate average
+int analogValue = 0;
+int baseline = 0;
+int average = 0;
+int significantChangeVal = 0;
+const int amountOfInputsForAverage = 6;
 
-int sampleCounter = 0;             // Counter to track the number of samples
-int sum = 0;                       // Variable to store the sum of the readings
+int sampleCounter = 0;
+int sum = 0;
 
-// Motor pins
-const int m1_clockwise = 6;          // left motor
-const int m1_counterclockwise = 5;   // left motor reverse
-const int m2_clockwise = 8;          // right motor
-const int m2_counterclockwise = 7;   // right motor reverse
-
+// Motor control pins
+const int m1_clockwise = 6;
+const int m1_counterclockwise = 5;
+const int m2_clockwise = 8;
+const int m2_counterclockwise = 7;
 int m_pins[] = {m2_clockwise, m2_counterclockwise, m1_clockwise, m1_counterclockwise};
 
 int init_yaw = 35;
 
+int sensorPin = A1;  // The OUT pin of the module is connected to A1
+int thresholdWhite = 600;  // Adjust this based on test readings
+
 void setup() {
-  Serial.begin(9600);  // Start serial communication for monitoring
-  Serial.println("Initialization begun!");
+    Serial.begin(9600);
+    Serial.println("Initialization begun!");
 
-  pinMode(detectBallPin, INPUT_PULLUP);
+    Wire.begin();
+    lcd.init();
+    lcd.backlight();
 
-  // Initialize pins for motors
-  for (int i = 0; i < sizeof(m_pins) / sizeof(m_pins[0]); i++) {
-    pinMode(m_pins[i], OUTPUT);
-  }
+    // Setup motor pins
+    for (int i = 0; i < sizeof(m_pins) / sizeof(m_pins[0]); i++) {
+        pinMode(m_pins[i], OUTPUT);
+    }
 
-  IrReceiver.begin(RECV_PIN, ENABLE_LED_FEEDBACK);  // Start the receiver
+    pinMode(detectBallPin, INPUT_PULLUP);
+    IrReceiver.begin(RECV_PIN, ENABLE_LED_FEEDBACK);
 
-  baseline = initialization();  // Set baseline
-  significantChangeVal = significantChange();  // Calculate significant change value
+    // Initialize MPU6050
+    mpu.initialize();
+    if (mpu.testConnection()) {
+        Serial.println("MPU6050 connected successfully!");
+        lcd.setCursor(0, 0);
+        lcd.print("MPU6050 Ready!");
+    } else {
+        Serial.println("MPU6050 connection failed!");
+        lcd.setCursor(0, 0);
+        lcd.print("MPU FAIL!");
+        while (1); // Stop execution
+    }
 
-  Serial.println("Initialization complete!");
-  Serial.print("Baseline: ");
-  Serial.println(baseline);
-  Serial.print("Significant Change Value: ");
-  Serial.println(significantChangeVal);
+    prevTime = millis();
+    baseline = initialization();
+    significantChangeVal = significantChange();
 
-  Wire.begin();
-  mpu.initialize();
-
-  if (mpu.testConnection()) {
-    Serial.println("MPU6050 connected successfully!");
-  } else {
-    Serial.println("MPU6050 connection failed!");
-    while (1);
-  }
-
-  prevTime = millis(); // Initialize time
-
-  // Stabilize and calculate initial yaw
-  float tempYaw = 0.0;
-  for (int i = 0; i < 10; i++) { // Take 10 readings to stabilize
-    tempYaw += yawVal();
-    delay(50); // Small delay between readings
-  }
-  init_yaw = tempYaw / 10.0; // Calculate average
-  Serial.print("Initial Yaw: ");
-  Serial.println(init_yaw);
+    Serial.println("Initialization complete!");
+    Serial.print("Baseline: ");
+    Serial.println(baseline);
+    Serial.print("Significant Change Value: ");
+    Serial.println(significantChangeVal);
 }
 
 void loop() {
@@ -90,154 +89,201 @@ void loop() {
   average = updateAverage(analogValue);
 
   // Update baseline dynamically
-  baseline = updateBaseline();
+  //baseline = updateBaseline();
 
   Serial.print("Average: ");
   Serial.println(average);
   Serial.print("Baseline: ");
   Serial.println(baseline);
 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Analog: ");
+  lcd.print(detectBall());
+  lcd.setCursor(0, 1);
+  lcd.print("Digital: ");
+  lcd.print(IrReceiver.decode());
+
   if (detectBall() && IrReceiver.decode()) {
-    stop();
-    delay(250);
-    signed long startTime = millis();
-    Serial.println("GOING FORWARD!");
-    forward(255 * speedVariable, 255 * speedVariable);
-    while (millis() - startTime < timer()) {
-      Serial.println(digitalRead(3));
-      if (digitalRead(3) == 0) {
-        Serial.println("SWITCH IS ON ON ONON ONONONONOONONONONONOONONONONON");
-        hasBall = true;
-        Serial.print("Before while!");
-        while (yawVal() < 350 || (yawVal() < 0 && yawVal() > 10)) {
-          Serial.print("Yaw: ");
-          Serial.println(yawVal());
-          Serial.print("init_yaw: ");
-          Serial.println(init_yaw);
-          forward(90 * speedVariable, 120 * speedVariable);
-        }
-        Serial.println(hasBall);
-        while (hasBall) {
-          forward(255 * speedVariable, 255 * speedVariable); // Peter's y = x^3 can be introduced here
-          Serial.println("Moving forward with the ball!");
-          delay(100); // Small delay to prevent flooding the serial monitor
-        }
-        break;
+      stop();
+      delay(250);
+      signed long startTime = millis();
+      Serial.println("GOING FORWARD!");
+      /*lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("forwards!");*/
+      detectWhite();
+      forward(255 * speedVariable, 255 * speedVariable);
+      
+      while (millis() - startTime < calculateDistance(baseline, average)) {
+          Serial.println(digitalRead(3));
+          if (digitalRead(3) == 0) {
+              Serial.println("Ball detected!");
+              hasBall = true;
+              while (yawVal() < 350 || (yawVal() < 0 && yawVal() > 10)) {
+                detectWhite();
+                  forward(90 * speedVariable, 120 * speedVariable);
+              }
+              while (hasBall) {
+                detectWhite();
+                  forward(255 * speedVariable, 255 * speedVariable);
+                  delay(100);
+              }
+              break;
+          }
       }
-    }
   }
-  IrReceiver.resume();  // Prepare to receive the next signal
-
+  IrReceiver.resume();
+  
   Serial.println("GOING RIGHT!");
-  right(90 * speedVariable, 90 * speedVariable);
+  right(80 * speedVariable, 80 * speedVariable);
+  detectWhite();
 }
 
+// Initialization function
 int initialization() {
-  int turnDuration = 5000;  // Time (ms) to perform the turn
-  unsigned long startTime = millis();
-
-  while (millis() - startTime < turnDuration) {
-    analogValue = analogRead(analogPin);
-    average = updateAverage(analogValue);
-    baseline = average;  // Keep updating baseline
-  }
-  return baseline;
+    int turnDuration = 5000;
+    unsigned long startTime = millis();
+    while (millis() - startTime < turnDuration) {
+        analogValue = analogRead(analogPin);
+        average = updateAverage(analogValue);
+        baseline = average;
+    }
+    return baseline;
 }
 
+// Ball detection logic
 bool detectBall() {
-  return (baseline - average >= significantChangeVal);
+    return (baseline - average >= significantChangeVal);
 }
 
+// Calculate significant change threshold
 int significantChange() {
-  // Calculate a threshold for significant change based on the baseline
-  return (0.0487 * baseline + 0.5);  // 0.5 added for rounding
+    return (0.0487 * baseline + 0.5);
 }
 
+// Update moving average
 int updateAverage(int newValue) {
-  // Add the new value to the sum
-  sum += newValue;
-  sampleCounter++;
-
-  // If we've collected enough samples, calculate the average and reset
-  if (sampleCounter == amountOfInputsForAverage) {
-    int newAverage = sum / amountOfInputsForAverage;
-    // Reset sum and counter for the next average calculation
-    sum = 0;
-    sampleCounter = 0;
-    return newAverage;
-  }
-
-  // If not enough samples yet, keep the current average
-  return average;
-}
-
-int updateBaseline() {
-  // Update the baseline if the current average is greater
-  if (average > baseline) {
+    sum += newValue;
+    sampleCounter++;
+    if (sampleCounter == amountOfInputsForAverage) {
+        int newAverage = sum / amountOfInputsForAverage;
+        sum = 0;
+        sampleCounter = 0;
+        return newAverage;
+    }
     return average;
-  }
-  return baseline;
 }
 
+// Dynamic baseline update
+int updateBaseline() {
+    if (average > baseline) {
+        return average;
+    }
+    return baseline;
+}
+
+// Read and calculate yaw
 int yawVal() {
-  int16_t gz; // Gyroscope Z-axis value
+    int16_t gz;
+    unsigned long currentTime = millis();
+    float dt = (currentTime - prevTime) / 1000.0;
+    prevTime = currentTime;
 
-  unsigned long currentTime = millis();
-  float dt = (currentTime - prevTime) / 1000.0; // Calculate delta time in seconds
-  prevTime = currentTime;
+    gz = mpu.getRotationZ();
+    float gyroZ = gz / 131.0;
 
-  // Get gyroscope Z-axis data directly
-  gz = mpu.getRotationZ();
-  float gyroZ = gz / 131.0; // Convert raw value to degrees/second
+    yaw += gyroZ * dt;
+    yaw = fmod(yaw + 360.0, 360.0);
 
-  // Integrate gyroscope data to estimate yaw
-  yaw += gyroZ * dt;
-
-  // Normalize yaw angle to 0-360 degrees
-  yaw = fmod(yaw + 360.0, 360.0);
-
-  return yaw - 0.03;
+    return yaw - 0.03;
 }
 
-int timer()
-{
-  int calculatedTime = (baseline - average) / significantChangeVal * 70;
-  Serial.print("Timer: ");
-  Serial.println(calculatedTime);
-  return max(calculatedTime, 100); // Ensure a minimum value of 100 ms
+// Calculate movement time
+int timer() {
+    int calculatedTime = (baseline - average) / significantChangeVal * 70;
+    return max(calculatedTime, 100);
 }
 
+// Calculate distance using the given formula
+float calculateDistance(int baseline, int average) {
+    float b = (float)(baseline);
+    float a = (float)(average);
+    float y = (float)(baseline - average); // You can adjust y based on your sensor data or other factors
+    
+    // Solve for x using the equation x = (y / (1.01 * b - 42.73)) ^ (1 / -0.264)
+    float x = pow((y / ((1.01 * b) - 42.73)), (1 / -0.264)) +3;
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Distance: ");
+    lcd.print(x);
+
+    //Convert distance to millis
+    x =x*60 +50;
+
+    if (x < 500)
+    {
+      x = 500;
+    }
+
+    lcd.setCursor(0, 1);
+    lcd.print("Time: ");
+    lcd.print(x);    
+
+    return x; // Distance in cm
+}
+
+void detectWhite() {
+  int sensorValue = analogRead(sensorPin);  // Read sensor value
+
+  Serial.print("Sensor Value: ");
+  Serial.println(sensorValue);  // Print sensor value
+
+  if (sensorValue > thresholdWhite) {
+      Serial.println("Detected: Green Surface");  // Swapped labels
+  } else {
+      Serial.println("Detected: White Surface");
+      while(sensorValue < thresholdWhite)
+      {
+        backwards(255, 255);
+      }
+  }
+}
+
+
+// Motor control functions
 void forward(int speed1, int speed2) {
-  analogWrite(m2_counterclockwise, speed2);
-  analogWrite(m1_counterclockwise, speed1);
-  digitalWrite(m1_clockwise, LOW);
-  digitalWrite(m2_clockwise, LOW);
+    analogWrite(m2_counterclockwise, speed2);
+    analogWrite(m1_counterclockwise, speed1);
+    digitalWrite(m1_clockwise, LOW);
+    digitalWrite(m2_clockwise, LOW);
 }
 
 void backwards(int speed1, int speed2) {
-  analogWrite(m1_clockwise, speed1);
-  analogWrite(m2_clockwise, speed2);
-  digitalWrite(m1_counterclockwise, LOW);
-  digitalWrite(m2_counterclockwise, LOW);
+    analogWrite(m1_clockwise, speed1);
+    analogWrite(m2_clockwise, speed2);
+    digitalWrite(m1_counterclockwise, LOW);
+    digitalWrite(m2_counterclockwise, LOW);
 }
 
 void right(int speed1, int speed2) {
-  analogWrite(m1_clockwise, speed1);
-  analogWrite(m2_counterclockwise, speed2);
-  digitalWrite(m1_counterclockwise, LOW);
-  digitalWrite(m2_clockwise, LOW);
+    analogWrite(m1_clockwise, speed1);
+    analogWrite(m2_counterclockwise, speed2);
+    digitalWrite(m1_counterclockwise, LOW);
+    digitalWrite(m2_clockwise, LOW);
 }
 
 void left(int speed1, int speed2) {
-  analogWrite(m1_counterclockwise, speed1);
-  analogWrite(m2_clockwise, speed2);
-  digitalWrite(m1_clockwise, LOW);
-  digitalWrite(m2_counterclockwise, LOW);
+    analogWrite(m1_counterclockwise, speed1);
+    analogWrite(m2_clockwise, speed2);
+    digitalWrite(m1_clockwise, LOW);
+    digitalWrite(m2_counterclockwise, LOW);
 }
 
 void stop() {
-  digitalWrite(m1_counterclockwise, LOW);
-  digitalWrite(m2_counterclockwise, LOW);
-  digitalWrite(m1_clockwise, LOW);
-  digitalWrite(m2_clockwise, LOW);
+    digitalWrite(m1_counterclockwise, LOW);
+    digitalWrite(m2_counterclockwise, LOW);
+    digitalWrite(m1_clockwise, LOW);
+    digitalWrite(m2_clockwise, LOW);
 }
