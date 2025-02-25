@@ -10,7 +10,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Change 0x27 to your LCD address if needed
 float yaw = 0.0;
 unsigned long prevTime = 0;
 
-float speedVariable = 0.5;
+float speedVariable = 0.7;
 
 int RECV_PIN = 4;  // IR receiver pin
 int detectBallPin = 2;
@@ -253,10 +253,8 @@ void detectWhite() {
         Serial.println("Detected: Green Surface");  // Swapped labels
     } else {
         Serial.println("Detected: White Surface");
-        while(sensorValue < thresholdWhite)
-        {
-          backwards(255, 255);
-        }
+        backwards(255, 255);
+        delay(500);
     }
   }
 }
