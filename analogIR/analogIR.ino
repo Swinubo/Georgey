@@ -10,11 +10,12 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Change 0x27 to your LCD address if needed
 float yaw = 0.0;
 unsigned long prevTime = 0;
 
-float speedVariable = 1;
+float speedVariable = 0.5;
 
 int RECV_PIN = 4;  // IR receiver pin
-int detectBallPin = 3;
+int detectBallPin = 2;
 bool hasBall = false;
+int dribblerPin = 3;
 
 // Analog sensor (LDR, etc.)
 const int analogPin = A0;
@@ -27,17 +28,19 @@ const int amountOfInputsForAverage = 6;
 int sampleCounter = 0;
 int sum = 0;
 
-// Motor control pins
+// Motor control pins (only work on pwm pins)
 const int m1_clockwise = 6;
 const int m1_counterclockwise = 5;
-const int m2_clockwise = 8;
-const int m2_counterclockwise = 7;
+const int m2_clockwise = 9;
+const int m2_counterclockwise = 10;
 int m_pins[] = {m2_clockwise, m2_counterclockwise, m1_clockwise, m1_counterclockwise};
 
 int init_yaw = 35;
 
 int sensorPin = A1;  // The OUT pin of the module is connected to A1
 int thresholdWhite = 600;  // Adjust this based on test readings
+
+bool detectColour= false;
 
 void setup() {
     Serial.begin(9600);
@@ -104,7 +107,7 @@ void loop() {
   lcd.print("Digital: ");
   lcd.print(IrReceiver.decode());
 
-  if (detectBall() && IrReceiver.decode()) {
+  if (IrReceiver.decode()) {
       stop();
       delay(250);
       signed long startTime = millis();
@@ -115,14 +118,18 @@ void loop() {
       detectWhite();
       forward(255 * speedVariable, 255 * speedVariable);
       
-      while (millis() - startTime < calculateDistance(baseline, average)) {
-          Serial.println(digitalRead(3));
-          if (digitalRead(3) == 0) {
+      while (millis() - startTime < 1500) { //replace time with calculateDistance(baseline, average)
+          Serial.println(digitalRead(detectBallPin));
+          if (digitalRead(detectBallPin) == 0) {
               Serial.println("Ball detected!");
+              analogWrite(dribblerPin, 255);
               hasBall = true;
-              while (yawVal() < 350 || (yawVal() < 0 && yawVal() > 10)) {
+              while (!(yawVal() >= 350)) {
                 detectWhite();
-                  forward(90 * speedVariable, 120 * speedVariable);
+                forward(200 * speedVariable, 255 * speedVariable);
+                lcd.clear();
+                lcd.setCursor(0, 0);
+                lcd.print(yawVal());
               }
               while (hasBall) {
                 detectWhite();
@@ -136,7 +143,7 @@ void loop() {
   IrReceiver.resume();
   
   Serial.println("GOING RIGHT!");
-  right(80 * speedVariable, 80 * speedVariable);
+  right(130 * speedVariable, 130 * speedVariable);
   detectWhite();
 }
 
@@ -235,19 +242,22 @@ float calculateDistance(int baseline, int average) {
 }
 
 void detectWhite() {
-  int sensorValue = analogRead(sensorPin);  // Read sensor value
+  if (detectColour)
+  {
+    int sensorValue = analogRead(sensorPin);  // Read sensor value
 
-  Serial.print("Sensor Value: ");
-  Serial.println(sensorValue);  // Print sensor value
+    Serial.print("Sensor Value: ");
+    Serial.println(sensorValue);  // Print sensor value
 
-  if (sensorValue > thresholdWhite) {
-      Serial.println("Detected: Green Surface");  // Swapped labels
-  } else {
-      Serial.println("Detected: White Surface");
-      while(sensorValue < thresholdWhite)
-      {
-        backwards(255, 255);
-      }
+    if (sensorValue > thresholdWhite) {
+        Serial.println("Detected: Green Surface");  // Swapped labels
+    } else {
+        Serial.println("Detected: White Surface");
+        while(sensorValue < thresholdWhite)
+        {
+          backwards(255, 255);
+        }
+    }
   }
 }
 
