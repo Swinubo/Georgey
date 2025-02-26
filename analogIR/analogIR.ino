@@ -130,11 +130,20 @@ void loop() {
                 lcd.clear();
                 lcd.setCursor(0, 0);
                 lcd.print(yawVal());
+                if (digitalRead(detectBallPin) == 1)
+                {
+                  hasBall =false;
+                  break;
+                }
               }
               while (hasBall) {
                 detectWhite();
                   forward(255 * speedVariable, 255 * speedVariable);
                   delay(100);
+                  if (digitalRead(detectBallPin) == 1)
+                  {
+                    hasBall =false;
+                  }
               }
               break;
           }
